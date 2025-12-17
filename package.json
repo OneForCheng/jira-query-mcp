@@ -1,0 +1,11 @@
+{
+  "name": "jira-query-mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "node-fetch": "^3.3.2",
+    "socks-proxy-agent": "^8.0.2",
+    "https-proxy-agent": "^7.0.2"
+  }
+}
