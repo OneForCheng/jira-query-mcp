@@ -18,7 +18,7 @@
 
 ```bash
 git clone https://github.com/OneForCheng/jira-query-mcp.git
-cd jira-query
+cd jira-query-mcp
 ```
 
 ### 2. 安装依赖
