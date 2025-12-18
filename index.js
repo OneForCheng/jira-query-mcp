@@ -105,6 +105,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               created: issue.fields.created,
               updated: issue.fields.updated,
               labels: issue.fields.labels,
+              attachments: issue.fields.attachment?.map(a => ({
+                filename: a.filename,
+                author: a.author.displayName,
+                created: a.created,
+                size: a.size,
+                mimeType: a.mimeType,
+                content: a.content
+              })) || [],
               comments: issue.fields.comment?.comments?.map(c => ({
                 author: c.author.displayName,
                 body: c.body,
