@@ -59,6 +59,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['issueKey'],
         },
       },
+      {
+        name: 'get_jira_issues',
+        description: 'Get all issues and subtasks for a Jira project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            projectKey: {
+              type: 'string',
+              description: 'Project key (e.g., "PP")',
+            },
+            jql: {
+              type: 'string',
+              description: 'Optional JQL to filter issues',
+            },
+          },
+          required: ['projectKey'],
+        },
+      },
     ],
   };
 });
@@ -118,6 +136,67 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 body: c.body,
                 created: c.created
               })) || []
+            }, null, 2),
+          },
+        ],
+      };
+    }
+
+    if (name === 'get_jira_issues') {
+      const { projectKey, jql: customJql } = args;
+      const jql = customJql 
+        ? `project = ${projectKey} AND ${customJql}` 
+        : `project = ${projectKey}`;
+      
+      const url = `${JIRA_CONFIG.host}/rest/api/${JIRA_CONFIG.apiVersion}/search?jql=${encodeURIComponent(jql)}`;
+
+      const fetchOptions = {
+        headers: {
+          'Authorization': `Bearer ${JIRA_CONFIG.token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+
+      if (proxyAgent) {
+        fetchOptions.agent = proxyAgent;
+      }
+
+      const response = await fetch(url, fetchOptions);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              total: data.total,
+              startAt: data.startAt,
+              maxResults: data.maxResults,
+              issues: data.issues.map(issue => ({
+                key: issue.key,
+                id: issue.id,
+                summary: issue.fields.summary,
+                description: issue.fields.description,
+                status: issue.fields.status.name,
+                assignee: issue.fields.assignee?.displayName || 'Unassigned',
+                reporter: issue.fields.reporter?.displayName || 'Unknown',
+                priority: issue.fields.priority?.name || 'None',
+                issueType: issue.fields.issuetype.name,
+                created: issue.fields.created,
+                updated: issue.fields.updated,
+                duedate: issue.fields.duedate,
+                labels: issue.fields.labels,
+                subtasks: issue.fields.subtasks?.map(st => ({
+                  key: st.key,
+                  summary: st.fields.summary,
+                  status: st.fields.status.name
+                })) || []
+              }))
             }, null, 2),
           },
         ],
