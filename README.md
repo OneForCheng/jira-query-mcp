@@ -5,6 +5,8 @@
 ## 功能特性
 
 - 通过 Jira 问题 Key 查询详细信息
+- 查询项目的所有问题和子任务列表
+- 支持 JQL 自定义查询过滤
 - 支持代理配置（可选）
 - 返回结构化的 Jira 问题数据，包括：
   - 基本信息（标题、描述、状态、负责人等）
@@ -12,6 +14,7 @@
   - 创建和更新时间
   - 标签和评论
   - 附件信息
+  - 子任务信息
 
 ## 安装步骤
 
@@ -54,7 +57,8 @@ npm install
       },
       "disabled": false,
       "autoApprove": [
-        "get_jira_issue"
+        "get_jira_issue",
+        "get_jira_issues"
       ]
     }
   }
@@ -83,7 +87,8 @@ npm install
       },
       "disabled": false,
       "autoApprove": [
-        "get_jira_issue"
+        "get_jira_issue",
+        "get_jira_issues"
       ]
     }
   }
@@ -177,6 +182,48 @@ get_jira_issue({ issueKey: "PROJ-123" })
 - 标签和评论列表
 - 附件信息（文件名、作者、创建时间、大小、MIME类型、下载链接）
 
+### get_jira_issues
+
+查询项目的所有问题和子任务列表。
+
+**参数：**
+- `projectKey` (string, 必需): 项目 Key，例如 "PP"、"PHOENIX"
+- `jql` (string, 可选): 自定义 JQL 查询条件，用于过滤问题
+
+**示例：**
+```javascript
+// 查询项目的所有问题
+get_jira_issues({ projectKey: "PHOENIX" })
+
+// 使用 JQL 过滤特定状态的问题
+get_jira_issues({ 
+  projectKey: "PHOENIX", 
+  jql: "status = '待办'" 
+})
+
+// 查询指定负责人的问题
+get_jira_issues({ 
+  projectKey: "PHOENIX", 
+  jql: "assignee = 'cheng'" 
+})
+
+// 组合多个条件
+get_jira_issues({ 
+  projectKey: "PHOENIX", 
+  jql: "status = '待办' AND priority = 'High'" 
+})
+```
+
+**返回数据包含：**
+- 分页信息（total、startAt、maxResults）
+- 问题列表，每个问题包含：
+  - 基本信息（Key、ID、标题、描述）
+  - 状态、负责人、报告人
+  - 优先级和问题类型
+  - 时间信息（创建时间、更新时间、截止日期）
+  - 标签
+  - 子任务列表（Key、标题、状态）
+
 ## 故障排除
 
 ### 常见问题
@@ -236,6 +283,11 @@ MIT
 欢迎提交 Issue 和 Pull Request！
 
 ## 更新日志
+
+### v1.1.0
+- 新增 `get_jira_issues` 工具，支持查询项目的所有问题和子任务
+- 支持 JQL 自定义查询过滤
+- 返回数据包含子任务信息
 
 ### v1.0.0
 - 初始版本
